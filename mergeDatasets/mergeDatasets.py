@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 
-def mergeDatasets(experimentDirectory):
+def mergeDatasets(experimentDirectory,outputDirectory):
     # Read all experiment folders in experimentDirectory
     list_of_files = [f for f in os.listdir(os.path.join(os.pardir, experimentDirectory))]
     list_of_folders=[]
@@ -10,24 +10,28 @@ def mergeDatasets(experimentDirectory):
         file_path=os.path.join(os.pardir, experimentDirectory, file)
         if os.path.isdir(file_path):
             list_of_folders.append(file)
-    # # For each folder in experimentDirectory perform dataset merging
+    # For each folder in experimentDirectory perform dataset merging
     for folder in list_of_folders:
         # Read 2 csvs and assign those to data frames
         # Dataset A - 10sec granularity
         df_A = pd.read_csv(os.path.join(os.pardir, experimentDirectory+"/"+folder+"/application_metrics.csv"),parse_dates={'datetime':['timestamp']})
         # Dataset B - 1sec granularity
         df_B = pd.read_csv(os.path.join(os.pardir, experimentDirectory+"/"+folder+"/system_metrics.csv"), parse_dates={'datetime':['timestamp']})
-        # Adjust timestamp format differences - This step is already handled by parse_dates while reading csv to data frame
+        # Adjust timestamp format differences
+        if str(df_B['datetime'].dtypes) == 'datetime64[ns, UTC]':
+            df_B["datetime"] = df_B["datetime"].dt.tz_convert('UTC')
+        elif str(df_B['datetime'].dtypes) == 'datetime64[ns]':
+            df_B["datetime"] = df_B["datetime"].dt.tz_localize('UTC')
         # Round off Dataset A to the nearest 10 sec
         df_A['datetime'] = df_A['datetime'].dt.round('10s')
         # Round off Dataset B to the nearest 10 sec.
         df_B['datetime'] = df_B['datetime'].dt.round('10s')
         # Aggregate multiple records having the same timestamp to a single record. Get the average of values.
-        df_B_column_headings = (df_B.columns.values)
-        new_arr = np.delete(df_B_column_headings, np.where(df_B_column_headings == 'datetime'))
-        print(new_arr)
-        print(type(new_arr))
-        g = {'cpu_usage':['mean'],'memory_usage':['mean']}
+        df_B_column_headings = df_B.columns.values
+        df_B_metric_names = np.delete(df_B_column_headings, np.where(df_B_column_headings == 'datetime'))
+        g={}
+        for metricname in df_B_metric_names:
+            g.update({metricname:['mean']})
         df_B = df_B.groupby(['datetime']).agg(g)
         # Drop a level from multi-level column index in df_B
         df_B.columns = ['_'.join(col) for col in df_B.columns]
@@ -49,7 +53,7 @@ def mergeDatasets(experimentDirectory):
         df = df.fillna(0)
         print(df)
         # Write output data frame to a csv file
-        # df.to_csv(os.path.join(os.pardir, experimentDirectory+"/"+folder+"/merged_system_application_metrics.csv"))
+        df.to_csv(os.path.join(os.pardir, outputDirectory+"/"+str(folder)+".csv"))
 
 if __name__ == '__main__':
-    mergeDatasets(experimentDirectory='experimentFolder')
+    mergeDatasets(experimentDirectory='experimentFolder', outputDirectory='outputFolder')
