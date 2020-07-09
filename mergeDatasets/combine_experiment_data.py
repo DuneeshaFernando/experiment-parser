@@ -4,7 +4,7 @@ import numpy as np
 
 from Utilities.parse_strings import parse_experiment_name
 
-DIRECTORY_PATH = '/Users/isuru/PycharmProjects/Deployment_optimization/Data/choreo_experiment_1/Prime/'
+DIRECTORY_PATH = '/Users/duneesha/Documents/2020work@wso2/experiment-parser/experimentFolder/experiment2'
 # DIRECTORY_PATH = '/Users/isuru/PycharmProjects/Deployment_optimization/Data/choreo_experiment_1/Echo/'
 
 
