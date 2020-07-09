@@ -10,7 +10,7 @@ DIRECTORY_PATH = '/Users/isuru/PycharmProjects/Deployment_optimization/Data/chor
 
 def summarise_experiments(experiment_data):
     averaging_data = experiment_data[
-        ['throughput(req/s)', 'avg_latency(ms)', 'concurrency', 'cpu_level', 'memory_level']]
+        ['throughput(req/s)', 'avg_latency(ms)', 'concurrency', 'cpu_usage', 'memory_usage']]
     summary_line = pd.DataFrame()
     summary_line['Experiment'] = [experiment_data['Experiment'][0]]
     for column_name in averaging_data.columns:
@@ -27,10 +27,10 @@ def find_all_files():
     all_dirs = []
     experiment_data = []
     for (dirpath, dirnames, filenames) in walk(DIRECTORY_PATH):
-        if "application_metrics.csv" in filenames and "CPU_and_memory_data.csv" in filenames:
+        if "application_metrics.csv" in filenames and "system_metrics.csv" in filenames:
             experiment_data.append([dirpath.split('/')[-1],
                                     dirpath + "/application_metrics.csv",
-                                    dirpath + "/processed_cpu_memory_data.csv"])
+                                    dirpath + "/system_metrics.csv"])
         all_dirs.append(dirpath.split('/')[-1])
     failed_experiments = list(set(all_dirs) - set([v[0] for v in experiment_data]))
     return experiment_data, failed_experiments
@@ -43,8 +43,8 @@ def merge_dfs(basedf, rest, merge_feild):
 
 
 def process_resource_data(resource_data, time_stamps):
-    cpu_data = list(resource_data['cpu_level'])
-    memory_data = list(resource_data['memory_level'])
+    cpu_data = list(resource_data['cpu_usage'])
+    memory_data = list(resource_data['memory_usage'])
     resource_time_stamp = list(resource_data['time_elp(s)'])
     metrics_time_stamp = list(time_stamps)
 
@@ -70,14 +70,14 @@ def process_resource_data(resource_data, time_stamps):
 
     return_data_df = pd.DataFrame()
     return_data_df['time_elp(s)'] = metrics_time_stamp
-    return_data_df['cpu_level'] = cpu_chunk
-    return_data_df['memory_level'] = memory_chunk
+    return_data_df['cpu_usage'] = cpu_chunk
+    return_data_df['memory_usage'] = memory_chunk
 
     return return_data_df
 
 
 def read_experiment(files):
-    th_la_df = pd.read_csv(files[0], index_col="Unnamed: 0")
+    th_la_df = pd.read_csv(files[0])
 
     cpu_memory_df = pd.read_csv(files[1])
     cpu_memory_df = process_resource_data(cpu_memory_df, th_la_df["time_elp(s)"])
@@ -96,9 +96,9 @@ def process_merged_data(merged_data, folder_name):
     merged_data["think_time"] = configuration_data[:, 2]
     merged_data["jMeter_users"] = configuration_data[:, 3]
 
-    merged_data["%cpu_utilization"] = np.round(merged_data["cpu_level"] * 100 / merged_data["cpu_mcore_second"], 2)
+    merged_data["%cpu_utilization"] = np.round(merged_data["cpu_usage"] * 100 / merged_data["cpu_mcore_second"], 2)
     merged_data["%memory_utilization"] = np.round(
-        merged_data["memory_level"] * 100 / (merged_data["max_memory"] * 1000), 2)
+        merged_data["memory_usage"] * 100 / (merged_data["max_memory"] * 1000), 2)
 
     merged_data.to_csv(DIRECTORY_PATH + '/' + folder_name + '/merged_data.csv')
 
