@@ -4,7 +4,7 @@ import numpy as np
 
 from Utilities.parse_strings import parse_experiment_name
 
-DIRECTORY_PATH = '/Users/isuru/PycharmProjects/Deployment_optimization/Data/choreo_experiment_1/Prime/'
+DIRECTORY_PATH = '/Users/duneesha/Documents/2020work@wso2/experiment-parser/experimentFolder/experiment2'
 # DIRECTORY_PATH = '/Users/isuru/PycharmProjects/Deployment_optimization/Data/choreo_experiment_1/Echo/'
 
 
@@ -30,7 +30,7 @@ def find_all_files():
         if "application_metrics.csv" in filenames and "CPU_and_memory_data.csv" in filenames:
             experiment_data.append([dirpath.split('/')[-1],
                                     dirpath + "/application_metrics.csv",
-                                    dirpath + "/processed_cpu_memory_data.csv"])
+                                    dirpath + "/system_metrics.csv"])
         all_dirs.append(dirpath.split('/')[-1])
     failed_experiments = list(set(all_dirs) - set([v[0] for v in experiment_data]))
     return experiment_data, failed_experiments
