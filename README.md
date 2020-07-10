@@ -19,5 +19,8 @@
     * timestamp followed by other system metrics 
     (e.g.: timestamp,cpu_usage,memory_usage)
     
+# Execution instructions
+`run  mergeDatasets/mergeDatasets.py `
+    
     
       
